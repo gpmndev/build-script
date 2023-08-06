@@ -2,7 +2,8 @@ plugins {
     id 'com.android.library'
     id 'org.jetbrains.kotlin.android'
 }
-apply from: 'outputs.gradle'
+project.ext.buildScriptVersion = "https://raw.githubusercontent.com/gpmndev/build-script/master/1.0/"
+apply from: "${project.ext.buildScriptVersion}outputs.gradle"
 
 group='com.viettel.dms'
 
