@@ -8,7 +8,7 @@ static def libraryOutputName(module, version) {
 }
 
 project.android.libraryVariants.all { variant ->
-    boolean isDeclareGroup = project.group != project.name
+    boolean isDeclareGroup = project.group != project.name && project.group.contains('com.viettel')
     String group = isDeclareGroup ? project.group : 'com.viettel.dms'
     def module = project.name
     def versionCode
