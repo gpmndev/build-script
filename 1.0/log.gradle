@@ -1,0 +1,32 @@
+import java.text.SimpleDateFormat
+
+project.ext.log = { groupId, artifactId, versionCode, versionName, releaseNote,
+                    gitUserName, gitUserEmail, gitBranchOrTag, gitLastCommit,
+                    DependencySet dependencies ->
+return """
+{
+\t"id": "$groupId:$artifactId",
+\t"version_code": $versionCode,
+\t"version_name": "$versionName",
+\t"build_date": "${new SimpleDateFormat("dd/MM/yyyy HH:mm:ss").format(new Date())}",
+\t"git_user_name": "$gitUserName",
+\t"git_user_email": "$gitUserEmail",
+\t"git_branch_or_tag": "$gitBranchOrTag",
+\t"git_last_commit": "$gitLastCommit",
+\t"release_note": "${releaseNote.trim().replace("\n", ";")}",
+\t"dependencies": [
+\t\t${textDependenciesFrom(dependencies, '\t\t')}
+\t]
+}""".trim()
+}
+
+static String textDependenciesFrom(DependencySet dependencies, String parentBullet) {
+    String dependencyStrings = ""
+    for(int i = 0; i < dependencies.size(); i++){
+        Dependency it = dependencies[i]
+        boolean isLastItem = i < dependencies.size() - 1
+        String separateChar = isLastItem ? "," : ""
+        dependencyStrings += """$parentBullet"${it.getGroup()}:${it.getName()}:${it.getVersion()}"$separateChar\r\n"""
+    }
+    return dependencyStrings.trim()
+}

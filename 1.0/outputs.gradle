@@ -1,0 +1,103 @@
+def buildScriptVersion = "https://raw.githubusercontent.com/gpmndev/build-script/master/1.0/"
+apply from: "${buildScriptVersion}pom.gradle"
+apply from: "${buildScriptVersion}log.gradle"
+
+
+static def libraryOutputName(module, version) {
+    return "$module-$version"
+}
+
+project.android.libraryVariants.all { variant ->
+    boolean isDeclareGroup = project.group != project.name
+    String group = isDeclareGroup ? project.group : 'com.viettel.dms'
+    def module = project.name
+    def versionCode
+    def versionName
+    def releaseNote
+    try {
+        def currentVersion = project.ext.currentVersion
+        versionCode = currentVersion.versionCode
+        versionName = currentVersion.versionName
+        try {
+            releaseNote = currentVersion.releaseNote
+        } catch (Exception ignored){
+            logger.error(ignored)
+            releaseNote = 'Không'
+        }
+    } catch (Exception ignored){
+        versionCode = project.android.defaultConfig.versionCode
+        versionName = project.android.defaultConfig.versionName
+        releaseNote = 'Không'
+    }
+    def libraryName = libraryOutputName(module, versionName) + ".aar"
+    def moduleDir = "$rootDir/${module}"
+    variant.outputs.all {
+        outputFileName = libraryName
+    }
+    variant.assemble.doLast {
+        if (variant.buildType.name == 'release') {
+            logger.error("Library output here: ${moduleDir}/build/outputs/aar/")
+            def dependencies = project.configurations.getByName("implementation").getDependencies()
+            def pomName = generatePOM(group, module, versionName, moduleDir, dependencies)
+            def logName = generateLog(group, module, versionCode, versionName, releaseNote, moduleDir, dependencies)
+            logger.error("\t+ Aar: ${moduleDir}/build/outputs/aar/$libraryName")
+            logger.error("\t+ Pom: ${moduleDir}/build/outputs/aar/$pomName")
+            logger.error("\t+ Log: ${moduleDir}/build/outputs/aar/$logName")
+        }
+    }
+}
+
+String generatePOM(group, module, versionName, moduleDir, DependencySet dependencies) {
+    String pomName = libraryOutputName(module, versionName) + ".pom"
+    String pomPath = "$moduleDir/build/outputs/aar/$pomName"
+    String pomContent = project.ext.pom(group, module, versionName, dependencies)
+    File pomFile = new File(pomPath)
+    pomFile.write(pomContent)
+    return pomName
+}
+String generateLog( groupId, module, versionCode, versionName, releaseNote, moduleDir, DependencySet dependencies ) {
+    String logName = libraryOutputName(module, versionName) + ".json"
+    String logOutputPath = "$moduleDir/build/outputs/aar/$logName"
+    new File("$moduleDir/release-note/").mkdir()
+    String logCommitPath = "$moduleDir/release-note/$logName"
+    File logOutputFile = new File(logOutputPath)
+    File logCommitFile = new File(logCommitPath)
+    String logContent = project.ext.log(groupId, module, versionCode, versionName, releaseNote,
+            getGitUsername(), getGitUserEmail(), getGitBranchOrTag(), getGitLastCommit().replace('\n',''),
+            dependencies)
+    logOutputFile.write(logContent)
+    logCommitFile.write(logContent)
+    return logName
+}
+
+def getGitUsername() {
+    return runCommand('git config user.name')
+}
+
+def getGitUserEmail() {
+    return runCommand('git config user.email')
+}
+
+def getGitBranchOrTag(){
+    return runCommand('git rev-parse --abbrev-ref HEAD')
+}
+
+def getGitLastCommit(){
+    return runCommand('git log -1')
+}
+
+def runCommand(String command) {
+    def result = "Unknown"
+    try {
+        def workingDir = new File("${rootDir}")
+        def commandResult = command.execute(null, workingDir)
+        commandResult.waitFor()
+        if (commandResult.exitValue() == 0) {
+            result = commandResult.text.trim()
+        }
+    } catch (e) {
+        logger.error(e.getMessage())
+    }
+    return result
+}
+

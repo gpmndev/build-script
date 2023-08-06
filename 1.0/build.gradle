@@ -1,0 +1,16 @@
+plugins {
+    id 'com.android.library'
+    id 'org.jetbrains.kotlin.android'
+}
+apply from: 'outputs.gradle'
+
+group='com.viettel.dms'
+
+android {
+    namespace 'com.viettel.dms.<module name>'
+
+    defaultConfig {
+        versionCode 1
+        versionName "1.0"
+    }
+}

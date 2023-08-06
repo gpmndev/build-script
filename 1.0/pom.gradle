@@ -1,0 +1,42 @@
+project.ext.pom = { groupId, artifactId, version, DependencySet dependencies ->
+    return """
+<?xml version="1.0" encoding="UTF-8"?>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
+\txmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+\t<!-- do_not_remove: published-with-gradle-metadata -->
+\t<modelVersion>4.0.0</modelVersion>
+\t<groupId>$groupId</groupId>
+\t<artifactId>$artifactId</artifactId>
+\t<version>$version</version>
+\t<packaging>aar</packaging>
+\t<name>$artifactId</name>
+\t<url>http://gitlab.gpdn.net/mobile-library/</url>
+\t<inceptionYear>${new Date().toYear()}</inceptionYear>
+\t<developers>
+\t\t<developer>
+\t\t\t<id>mobeo</id>
+\t\t\t<name>Mobeo dev</name>
+\t\t\t<email>mobile.tech.vts@gmail.com</email>
+\t\t</developer>
+\t\t</developers>
+\t<dependencies>
+\t\t${xmlDependenciesFrom(dependencies, '\t\t')}
+\t</dependencies>
+</project>
+""".trim()
+}
+
+static String xmlDependenciesFrom(DependencySet dependencies, String parentBullet) {
+    String p = parentBullet
+    String dependencyStrings = ""
+    dependencies.forEach {
+        dependencyStrings += """
+$p<dependency>
+$p\t<groupId>${it.getGroup()}</groupId>
+$p\t<artifactId>${it.getName()}</artifactId>
+$p\t<version>${it.getVersion()}</version>
+$p\t<scope>runtime</scope>
+$p</dependency>"""
+    }
+    return dependencyStrings.trim()
+}
