@@ -21,7 +21,6 @@ project.android.libraryVariants.all { variant ->
         try {
             releaseNote = currentVersion.releaseNote
         } catch (Exception ignored){
-            logger.error(ignored)
             releaseNote = 'Không'
         }
     } catch (Exception ignored){
