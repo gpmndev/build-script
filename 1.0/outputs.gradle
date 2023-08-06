@@ -1,4 +1,4 @@
-def buildScriptVersion = "https://raw.githubusercontent.com/gpmndev/build-script/master/1.0/"
+def buildScriptVersion = project.ext.buildScriptVersion
 apply from: "${buildScriptVersion}pom.gradle"
 apply from: "${buildScriptVersion}log.gradle"
 
